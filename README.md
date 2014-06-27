@@ -33,22 +33,22 @@ not currently utilize ExternalFunction
 * it exists by the name specified in the parameter.
 
 
-(NDT Object).fatalErrorOccured
-(NDT Object).allTestsCompleted
-.testStarted
+-   (NDT Object).fatalErrorOccured
+-   (NDT Object).allTestsCompleted
+-   .testStarted
 	param test_type String
-.testCompleted
+-   .testCompleted
 	param test_type String
 	param test_failed bool
-.appendErrors
+-   .appendErrors
 	param error_message String
-.appendDebugOutput
+-   .appendDebugOutput
 	param debug_message String
-.resultsProcessed
-.getNDTServer
-getClientApplication
+-   .resultsProcessed
+-   .getNDTServer
+-   getClientApplication
 	client_application field
-getNDTDescription
+-   getNDTDescription
 	NDT description
 
 ### Callbacks
@@ -57,18 +57,18 @@ Functions that can be called through the Flash instance from Javascript
 to start tests and access data, including diagnostic information and
 processed results.
 
-"run_test", NDTPController.getInstance().startNDTTest);
-"get_status", 
+-   "run_test", NDTPController.getInstance().startNDTTest);
+-   "get_status", 
 	return TestResults.getTestStatus string
-"getDebugOutput", 
-	retunr TestResults.getDebugMsg string
-"get_diagnosis"
+-   "getDebugOutput", 
+	return TestResults.getDebugMsg string
+-   "get_diagnosis"
 	return TestResults.getResultDetails string
-"get_errmsg"
+-   "get_errmsg"
 	return TestResults.getErrStatus string
-"get_host", Main.getHost);
-"get_PcBuffSpdLimit", TestResults.getPcLimit);
-"getNDTvar", TestResultsUtils.getNDTVariable);
+-   "get_host", Main.getHost);
+-   "get_PcBuffSpdLimit", TestResults.getPcLimit);
+-   "getNDTvar", TestResultsUtils.getNDTVariable);
 
 To Do
 ---------------------
