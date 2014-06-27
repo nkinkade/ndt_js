@@ -92,10 +92,11 @@ NDTjs.prototype = {
 		return false;
 	},
 	start_test: function(callbacks) {
-		callbacks = callbacks || {'onchange': undefined, 'oncompletion': undefined, 'onfail': undefined};
+		callbacks = callbacks || {'onchange': undefined, 'oncompletion': undefined, 'onerror': undefined};
 		
 		var global_state = undefined,
-			current_state = undefined;
+			current_state = undefined,
+			error_message = undefined;
 		
 		if (this.ready === true && typeof this.client.run_test === 'function' && this.semaphore == false) {
 			this.semaphore = true;
@@ -104,10 +105,9 @@ NDTjs.prototype = {
 			this.interval_id = setInterval(
 								(function(self, global_state) {         //Self-executing func which takes 'this' as self
 									 return function() {   //Return a function in the context of 'self'
-									 	console.log(callbacks);
+									 	
 										if (callbacks['onchange'] !== undefined) {
 												current_state = self.status();
-												console.log(current_state);
 												if (current_state != global_status) {
 													callbacks['onchange'](current_state);
 													global_status = current_state;
@@ -121,14 +121,18 @@ NDTjs.prototype = {
 												callbacks['oncompletion']();
 											}											
 										}
+
+									 	error_message = self.client.get_errmsg();
+										if ( !(error_message == 'Test in progress.' || error_message == 'All tests completed OK.' || error_message == 'Test not run.') ) {
+											if (callbacks['onerror'] !== undefined) {
+												callbacks['onerror']();
+											}
+										}
 									 }
 									})(this, global_state),
 									100
 								);
 			return true;
-		}
-		else {
-			callbacks['onfail']();
 		}
 		return false;
 	},
@@ -155,9 +159,9 @@ NDTjs.prototype = {
 	},
 	get_server: function() {
 		if (this.ready === true) {
-			true;
+			return this.client.get_host();
 		}
-		return 'not_implemented';
+		return false;
 	},
 	/**
 	 * get_results: 
@@ -185,4 +189,22 @@ NDTjs.prototype = {
 			return false;
 		}		
 	}
+}
+
+function testStarted(test_type) {
+
+	console.log(test_type + '-' + 'started');
+}
+function startTested(test_type) {
+
+	console.log(test_type + '-' + 'startTested');
+}
+
+function testCompleted(test_type, test_message) {
+
+	console.log(test_type + '-' + 'ended:' + test_message);
+}
+function appendErrors(test_message) {
+
+	console.log('error' + ':' + test_message);
 }
