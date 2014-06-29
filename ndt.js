@@ -83,7 +83,7 @@ NDTjs.prototype = {
 //             'flashvars="' + flashvars + '" type="application/x-shockwave-flash" allowscriptaccess="always" quality="high" loop="false" play="true" ' +
 //             'id="' + swfName + '" bgcolor="#ffffff" src="' + this.config.swf_url + '">' +
 //             '</object>';
-		swfContainer.innerHTML ='<object width="483" height="387" id="' + swfName + '" data="../ndt.swf" type="application/x-shockwave-flash">';
+		swfContainer.innerHTML ='<object width="483" height="387" id="' + swfName + '" src="' + this.config.swf_url + '" type="application/x-shockwave-flash">';
 		this.mlab_find_server()
         this.client = document[swfName] || window[swfName];	
         return true;
