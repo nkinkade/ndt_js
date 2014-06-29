@@ -20,6 +20,8 @@ NDTjs.prototype = {
 	client: null,
 	ready: false,
 	semaphore: false,
+	current_state: undefined,
+	current_mlab: undefined,
 	onload: function(){  },
 	build_config: function(config) {
         config = config || {};
@@ -63,7 +65,6 @@ NDTjs.prototype = {
             return d;
         }
         // the callback functions that javascript provides to flash must be globally accessible
-        NDTjs[this.config.namespace] = this;
 
         var swfContainer = div(false);
         var swfName = id(this.config.namespace);
@@ -73,17 +74,19 @@ NDTjs.prototype = {
             "LSOName=" + this.config.namespace;
 
 
-        swfContainer.innerHTML = '<object height="100" width="500" codebase="https://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab" id="' +
-            swfName + '-object" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000">' +
-            '	<param value="' + this.config.swf_url + '" name="movie">' +
-            '	<param value="' + flashvars + '" name="FlashVars">' +
-            '	<param value="always" name="allowScriptAccess">' +
-            '	<embed width="1px" height="1px" pluginspage="https://www.macromedia.com/go/getflashplayer" ' +
-            'flashvars="' + flashvars + '" type="application/x-shockwave-flash" allowscriptaccess="always" quality="high" loop="false" play="true" ' +
-            'name="' + swfName + '" bgcolor="#ffffff" src="' + this.config.swf_url + '">' +
-            '</object>';
-
+//         swfContainer.innerHTML = '<object height="100" width="500" codebase="https://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab" id="' +
+//             swfName + '-object" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000">' +
+//             '	<param value="' + this.config.swf_url + '" name="movie">' +
+//             '	<param value="' + flashvars + '" name="FlashVars">' +
+//             '	<param value="always" name="allowScriptAccess">' +
+//             '	<embed width="1px" height="1px" pluginspage="https://www.macromedia.com/go/getflashplayer" ' +
+//             'flashvars="' + flashvars + '" type="application/x-shockwave-flash" allowscriptaccess="always" quality="high" loop="false" play="true" ' +
+//             'id="' + swfName + '" bgcolor="#ffffff" src="' + this.config.swf_url + '">' +
+//             '</object>';
+		swfContainer.innerHTML ='<object width="483" height="387" id="' + swfName + '" data="../ndt.swf" type="application/x-shockwave-flash">';
+		this.mlab_find_server()
         this.client = document[swfName] || window[swfName];	
+        return true;
 	},
 	status: function(){
 		if (this.ready === true && typeof this.client.get_status === 'function') {
@@ -94,26 +97,25 @@ NDTjs.prototype = {
 	start_test: function(callbacks) {
 		callbacks = callbacks || {'onchange': undefined, 'oncompletion': undefined, 'onerror': undefined};
 		
-		var global_state = undefined,
-			current_state = undefined,
-			error_message = undefined;
 		
 		if (this.ready === true && typeof this.client.run_test === 'function' && this.semaphore == false) {
 			this.semaphore = true;
 			this.client.run_test();
 			
 			this.interval_id = setInterval(
-								(function(self, global_state) {         //Self-executing func which takes 'this' as self
+								(function(self) {         //Self-executing func which takes 'this' as self
 									 return function() {   //Return a function in the context of 'self'
 									 	
+									 	var reported_state = self.status(),
+									 		error_message = self.client.get_errmsg();
+									 	
 										if (callbacks['onchange'] !== undefined) {
-												current_state = self.status();
-												if (current_state != global_status) {
-													callbacks['onchange'](current_state);
-													global_status = current_state;
+												if (self.current_state != reported_state) {
+													callbacks['onchange'](reported_state);
+													self.current_state = reported_state;
 												}
 										}
-										if (self.ready == true && self.status() == 'done') {			
+										if (reported_state == 'done') {			
 											self.semaphore = false;
 											clearInterval(self.interval_id);
 																							
@@ -122,14 +124,13 @@ NDTjs.prototype = {
 											}											
 										}
 
-									 	error_message = self.client.get_errmsg();
 										if ( !(error_message == 'Test in progress.' || error_message == 'All tests completed OK.' || error_message == 'Test not run.') ) {
 											if (callbacks['onerror'] !== undefined) {
-												callbacks['onerror']();
+												callbacks['onerror'](error_message);
 											}
 										}
 									 }
-									})(this, global_state),
+									})(this),
 									100
 								);
 			return true;
@@ -188,23 +189,32 @@ NDTjs.prototype = {
 		else {
 			return false;
 		}		
+	},
+	mlab_ns_url: 'https://mlab-ns.appspot.com/ndt',
+	mlab_find_server: function() {
+		var request;
+
+		if (window.XMLHttpRequest) {
+			request = new XMLHttpRequest();
+		} else if (window.ActiveXObject) { // IE 8 and older
+			request = new ActiveXObject("Microsoft.XMLHTTP");
+		}
+
+		request.open('GET', this.mlab_ns_url, false);
+		request.send(null);
+				
+		if (request.status === 200) {
+			try {
+				this.current_server = JSON.parse(request.responseText);
+				return this.current_server;
+			} catch (e) {
+				//console.error("Could not parse response: " + e.toString());
+			}
+		}
+		else {
+			//console.error("While retrieving server list encounter HTTP Error Code " + request.status);
+		}
+		
+		return false;				
 	}
-}
-
-function testStarted(test_type) {
-
-	console.log(test_type + '-' + 'started');
-}
-function startTested(test_type) {
-
-	console.log(test_type + '-' + 'startTested');
-}
-
-function testCompleted(test_type, test_message) {
-
-	console.log(test_type + '-' + 'ended:' + test_message);
-}
-function appendErrors(test_message) {
-
-	console.log('error' + ':' + test_message);
 }

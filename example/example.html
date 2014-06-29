@@ -1,38 +1,13 @@
 <!DOCTYPE html>
-	<meta charset="utf-8">
+<html>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" charset="utf-8"/>
 	<head>
 		<link rel="stylesheet" type="text/css" href="example.css">
 		<script src="http://d3js.org/d3.v3.min.js"></script>
-		<script>
-			
-			function ndt_control() {
-				NDT.start_test({'onchange': ndt_on_change, 'oncompletion': ndt_on_completion});
-				
-				global_status = false;
-			}
-		</script>
 		<script src="../ndt.js"></script>
-		<script>
-			function initialize_application() {
-				server_name = NDT.get_server();
-				test_results.text(server_name);
-				meter.on("click",  ndt_control());
-			}
-		</script>
-		<script>
-			var NDT;
-			
-			function ndt_setup() {
-				NDT = new NDTjs({ 
-										swf_url: '../ndt.swf',
-										debug: true,
-										onready: initialize_application
-									});
-			}
-		</script>
+		<script src="example.js"></script>
 	</head>
-	<body onload="ndt_setup()">
+	<body onload="NDT_on_pageload()">
 	</body>
-	<script src="example.js"></script>
-<html>
+</html>
 
