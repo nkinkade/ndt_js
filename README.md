@@ -11,14 +11,38 @@ Partners within the Measurement Lab consortium have developed an NDT
 client for browser-based testing of network conditions. While the latest
 tested client is available within this repository as 'ndt.swf', the
 source is available at: 
+
 https://code.google.com/p/ndt/source/browse/#svn%2Ftrunk%2Fflash-client
 
 Method 1: Javascript Interaction 
 ---------------------
+-   **status**: Simple abstracted layer to retrieve M-Lab test state.
+    -   params: `none`
+    -   returns: `string` NDT test status 
 
-Included in this repository is a Javascript file
+-   **start_test**: Attempt to run the Flash client's NDT test and then monitor its results as through the `status` function. Triggers the callbacks when encountered. 
+    -   params: `Object` JSON Structure of callbacks; Structure: {'onchange': function, 'oncompletion': function, 'onerror': function}
+    -   returns: `bool` Javascript attempted to trigger test.
 
+-   **get_server**: Simple abstracted layer to retrieve M-Lab site selected for test.
+    -   arguments: `none`
+    -   expects: `string` FQDN of Measurement Lab server
 
+-   **get_results**: Provides a layer of abstraction between the flash client and JS functionalities. The flash client makes web100 variables available through this method, as well as processed results. We offer both and include shortcuts for core measurements.
+    -   arguments: `string`type of result to retrieve from the NDT client.
+    -   expects: `string` result of the NDT test, otherwise returns false.
+
+-   **mlab_find_server**: Performs a synchronous AJAX request to M-Lab NS in order to determine the closest Measurement Lab server.
+    -   params: `none`
+    -   returns: `Object` JSON of the M-Lab server information: (city, url, ip, site, fqdn)
+
+-   **build_client** *private*: Build the HTML and append NDT flash client to DOM body.
+    -   params: `none`
+    -   returns: `DOM Object`  Client's DOM object.
+
+-   **check_loaded** *private*: Is the NDT flash client properly loaded? Will fire off a recurrent function to check to the availability of the flash object, then attempts runs a callback function if provided to the NDT object's constructor.
+    -   arguments: `none`
+    -   expects: `none`
 
 Method 2: Flash Interaction 
 ---------------------
