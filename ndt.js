@@ -1,15 +1,37 @@
 /**
  * NDTjs - a JavaScript library for Flash-based NDT Tests
+ * 
+ * https://github.com/collina/ndt_js
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
+
+/* globals NDTjs */
 
 "use strict"; // http://ejohn.org/blog/ecmascript-5-strict-mode-json-and-more/
 
 if (typeof NDTjs === 'undefined') {
 
-	var NDTjs = function(config, function_onload, function_onerror) {
+	var NDTjs = function(config) {
+		this.current_mlab = this.mlab_find_server();
 		this.build_config(config);
-		this.build_client();
+		this.client = this.build_client();
 		this.check_loaded();
 	}
 
@@ -21,8 +43,14 @@ NDTjs.prototype = {
 	ready: false,
 	semaphore: false,
 	current_state: undefined,
+	mlab_ns_url: 'https://mlab-ns.appspot.com/ndt',
 	current_mlab: undefined,
-	onload: function(){  },
+	/**
+	 * build_config - Set NDT object's variables. 
+	 * 
+	 * @param {Object} Configuration of client
+	 * @private
+	 */
 	build_config: function(config) {
         config = config || {};
         var defaults = {
@@ -45,6 +73,14 @@ NDTjs.prototype = {
         this.config = config;	
         return true;
 	},
+	/**
+	 * build_client 
+	 * 
+	 * Build the HTML and append NDT flash client to DOM body.
+	 * 
+	 * @return {DOM Object} Client's DOM object.
+	 * @private
+	 */
 	build_client: function() {
         function id(name) {
             return "NDTjs_" + name ;
@@ -68,44 +104,56 @@ NDTjs.prototype = {
 
         var swfContainer = div(false);
         var swfName = id(this.config.namespace);
-
-        var flashvars = "namespace=" + this.config.namespace + "&amp;" +
+        
+		/*
+			Initially used SwfStore code, but ran into issues with IE; temporary 
+			revert to original include, but leaving absent code here for the time being:
+			
+			var flashvars = "namespace=" + this.config.namespace + "&amp;" +
             (this.config.path ? "LSOPath=" + this.config.path + '&amp;' : '') +
             "LSOName=" + this.config.namespace;
-
-
-//         swfContainer.innerHTML = '<object height="100" width="500" codebase="https://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab" id="' +
-//             swfName + '-object" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000">' +
-//             '	<param value="' + this.config.swf_url + '" name="movie">' +
-//             '	<param value="' + flashvars + '" name="FlashVars">' +
-//             '	<param value="always" name="allowScriptAccess">' +
-//             '	<embed width="1px" height="1px" pluginspage="https://www.macromedia.com/go/getflashplayer" ' +
-//             'flashvars="' + flashvars + '" type="application/x-shockwave-flash" allowscriptaccess="always" quality="high" loop="false" play="true" ' +
-//             'id="' + swfName + '" bgcolor="#ffffff" src="' + this.config.swf_url + '">' +
-//             '</object>';
-		swfContainer.innerHTML ='<object width="483" height="387" id="' + swfName + '" data="' + this.config.swf_url + '" type="application/x-shockwave-flash">';
-		this.mlab_find_server()
-        this.client = document[swfName] || window[swfName];	
-        return true;
+             '	<param value="' + this.config.swf_url + '" name="movie">' +
+             '	<param value="' + flashvars + '" name="FlashVars">' +
+             '	<param value="always" name="allowScriptAccess">' +
+		*/
+		swfContainer.innerHTML ='<object width="483" height="387" id="' + swfName + 
+			'" data="' + this.config.swf_url + '" type="application/x-shockwave-flash">';
+        return document[swfName] || window[swfName];
 	},
+	/**
+	 * status 
+	 * 
+	 * Simple abstracted layer to retrieve M-Lab test state, see documentation for
+	 * diversity of possible results and their meaning.
+	 * 
+	 * @return {string} NDT test status 
+	 */
 	status: function(){
 		if (this.ready === true && typeof this.client.get_status === 'function') {
 			return this.client.get_status();
 		}
 		return false;
 	},
+	/**
+	 * start_test
+	 * 
+	 * Attempt to run the Flash client's NDT test and then monitor its results
+	 * as through the `status` function. Triggers the callbacks when encountered.
+	 * Structure: {'onchange': function, 'oncompletion': function, 'onerror': function};
+	 * 
+	 * @param {Object} JSON Structure of callbacks
+	 * @return {bool} Javascript attempted to trigger test.
+	 */
 	start_test: function(callbacks) {
 		callbacks = callbacks || {'onchange': undefined, 'oncompletion': undefined, 'onerror': undefined};
-		
 		
 		if (this.ready === true && typeof this.client.run_test === 'function' && this.semaphore == false) {
 			this.semaphore = true;
 			this.client.run_test();
 			
 			this.interval_id = setInterval(
-								(function(self) {         //Self-executing func which takes 'this' as self
-									 return function() {   //Return a function in the context of 'self'
-									 	
+								(function(self) { 
+									 return function() { 
 									 	var reported_state = self.status(),
 									 		error_message = self.client.get_errmsg();
 									 	
@@ -138,18 +186,22 @@ NDTjs.prototype = {
 		return false;
 	},
 	/**
-	 * callback_constructor: Is the NDT flash client properly loaded?
+	 * check_loaded - Is the NDT flash client properly loaded?
 	 * 
-	 * @return {boolean} client state
+	 * Will fire off a recurrent function to check to the availability of the 
+	 * flash object, then attempts runs a callback function if provided to the 
+	 * NDT object's constructor
+	 * 
+	 * @private
 	 */
 	check_loaded: function() {
 		 this.interval_id = setInterval(
-			 (function(self) {         //Self-executing func which takes 'this' as self
-				 return function() {   //Return a function in the context of 'self'
+			 (function(self) {
+				 return function() {
 					if (typeof self.client != 'undefined' && typeof self.client.get_status === 'function') {			
 						clearInterval(self.interval_id);
 						self.ready = true;
-						if (typeof self.onload === 'function') {
+						if (typeof self.config.onready === 'function') {
 							self.config.onready();
 						}
 					}
@@ -158,6 +210,11 @@ NDTjs.prototype = {
 			 100
 		 );
 	},
+	/**
+	 * get_server - Simple abstracted layer to retrieve M-Lab site selected for test.
+	 * 
+	 * @return {string} FQDN of Measurement Lab server 
+	 */
 	get_server: function() {
 		if (this.ready === true) {
 			return this.client.get_host();
@@ -165,7 +222,11 @@ NDTjs.prototype = {
 		return false;
 	},
 	/**
-	 * get_results: 
+	 * get_results
+	 * 
+	 * Provides a layer of abstraction between the flash client and JS functionalities.
+	 * The flash client makes web100 variables available through this method, as well as
+	 * processed results. We offer both and include shortcuts for core measurements.
 	 * 
 	 * @param {string} type of result to retrieve from the NDT client
 	 * @return {string} result of the NDT test, otherwise returns false.
@@ -190,7 +251,15 @@ NDTjs.prototype = {
 			return false;
 		}		
 	},
-	mlab_ns_url: 'https://mlab-ns.appspot.com/ndt',
+	/**
+	 * mlab_find_server
+	 * 
+	 * Performs a synchronous AJAX request to M-Lab NS in order to determine the
+	 * closest Measurement Lab server.
+	 * 
+	 * @param {none} 
+	 * @return {Object} JSON of the M-Lab server information: (city, url, ip, site, fqdn)
+	 */
 	mlab_find_server: function() {
 		var request;
 
@@ -205,14 +274,14 @@ NDTjs.prototype = {
 				
 		if (request.status === 200) {
 			try {
-				this.current_server = JSON.parse(request.responseText);
-				return this.current_server;
+				this.current_mlab = JSON.parse(request.responseText);
+				return this.current_mlab;
 			} catch (e) {
-				//console.error("Could not parse response: " + e.toString());
+				console.error("Could not parse response: " + e.toString());
 			}
 		}
 		else {
-			//console.error("While retrieving server list encounter HTTP Error Code " + request.status);
+			console.error("While retrieving server list encounter HTTP Error Code " + request.status);
 		}
 		
 		return false;				

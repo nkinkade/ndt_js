@@ -38,17 +38,21 @@ function NDT_on_pageload() {
 							 .attr("id", "progress-meter");
 	window.NDT['meter'].append("path").attr("class", "background").attr("d", window.NDT['arc'].endAngle(twoPi));
 	window.NDT['meter'].append("path").attr("class", "foreground");
-
+	window.NDT['meter'].append("text")
+						.attr("text-anchor", "middle")
+						.attr("dy", "0em")
+						.attr("class", "information")
+						.text("Loading Flash Elements...");
 
 }
 function NDT_initialize_application() {
-	if (window.NDT['object'].current_server == undefined) {
+	if (window.NDT['object'].current_mlab == undefined) {
 		server_name = window.NDT['object'].get_server();
 	}
 	
 	NDT_reset_meter();
 	d3.select('text.status').text('Start Test');	
-	d3.select('text.information').text(window.NDT['object'].current_server.city + ', ' + window.NDT['object'].current_server.country + ' (' + window.NDT['object'].current_server.site + ')');
+	d3.select('text.information').text(window.NDT['object'].current_mlab.city + ', ' + window.NDT['object'].current_mlab.country + ' (' + window.NDT['object'].current_mlab.site + ')');
 	
 	window.NDT['meter'].on("click", NDT_on_click);
 	
@@ -75,7 +79,7 @@ function NDT_reset_meter() {
 	d3.selectAll("#progress-meter text").classed("ready", true)
 }
 function getNDTServer() {
-	return window.NDT['object'].current_server.fqdn;
+	return window.NDT['object'].current_mlab.fqdn;
 }
 function NDT_on_change(returned_message) {
 		var ndt_status_labels = {
