@@ -1,7 +1,7 @@
 function NDT_on_pageload() {
 
-	var width = 500, 
-		height = 500,
+	var width = 300, 
+		height = 300,
 		twoPi = 2 * Math.PI;
 
 	window.NDT = {
@@ -18,12 +18,12 @@ function NDT_on_pageload() {
 									}
 				 }
 	window.NDT['object'] = new NDTjs({ 
-							swf_url: 'ndt.swf',
+							swf_url: 'resources/ndt.swf',
 							debug: true,
 							onready: window.NDT['callbacks']['onready']
 						});
 	
-	var svg = d3.select("body").append("svg")
+	var svg = d3.select("#d3_container").append("svg")
 				.attr("width", width)
 				.attr("height", height)
 				.append("g")
@@ -32,8 +32,8 @@ function NDT_on_pageload() {
 	window.NDT['arc'] = d3.svg.arc()
 					      .startAngle(0)
 					      .endAngle(0)
-					      .innerRadius(150)
-					      .outerRadius(180);
+					      .innerRadius(110)
+					      .outerRadius(150);
 	window.NDT['meter'] = svg.append("g")
 							 .attr("id", "progress-meter");
 	window.NDT['meter'].append("path").attr("class", "background").attr("d", window.NDT['arc'].endAngle(twoPi));
@@ -47,7 +47,7 @@ function NDT_on_pageload() {
 }
 function NDT_initialize_application() {
 	if (window.NDT['object'].current_mlab == undefined) {
-		server_name = window.NDT['object'].get_server();
+		server_name = window.NDT['object'].get_host();
 	}
 	
 	NDT_reset_meter();
@@ -78,16 +78,19 @@ function NDT_reset_meter() {
 	d3.select('#progress-meter').classed('progress-complete', false);
 	d3.selectAll("#progress-meter text").classed("ready", true)
 }
-function getNDTServer() {
-	return window.NDT['object'].current_mlab.fqdn;
-}
+
 function NDT_on_change(returned_message) {
 		var ndt_status_labels = {
 									'notStarted': 'Preparing',
-									'done': 'Complete',
-									'runningInboundTest': 'Measuring Download',
-									'runningOutboundTest': 'Measuring Upload',
-									'sendingMetaInformation': 'Sending to M-Lab!'
+									'allTestsCompleted': 'Complete',
+                                    'preparingInboundTest': 'Preparing Download',
+                                    'preparingOutboundTest': 'Preparing Upload',
+                                    'runningInboundTest': 'Measuring Download',
+                                    'runningOutboundTest': 'Measuring Upload',
+									'finishedInboundTest': 'Finished Download',
+									'finishedOutboundTest': 'Finished Upload',
+									'sendingMetaInformation': 'Sending to M-Lab...',
+                                    'submittedMetaInformation': 'Measurement Sent!',
 								}
 		window.NDT['state'] = returned_message;
 		window.NDT['time_switched'] = new Date().getTime();
@@ -96,7 +99,6 @@ function NDT_on_change(returned_message) {
 		d3.timer(NDT_on_progress);		
 }
 function NDT_on_progress() {
-
 	var origin = 0,
 		progress = 0,
 		twoPi = 2 * Math.PI,
@@ -123,7 +125,7 @@ function NDT_on_progress() {
 			start_angle = window.NDT['arc'].startAngle(origin);
 		}
 	} 
-	else if (current_message == "done") {
+	else if (current_message == "allTestsCompleted") {
 			end_angle = window.NDT['arc'].endAngle(twoPi);
 			start_angle = window.NDT['arc'].startAngle(origin);
 	}
@@ -134,7 +136,7 @@ function NDT_on_progress() {
 	d3.select('.foreground').attr("d", end_angle);
 	d3.select('.foreground').attr("d", start_angle);
 	
-	if (current_message == 'done') {
+	if (current_message == 'allTestsCompleted') {
 		return true;
 	}
 	
