@@ -25,12 +25,16 @@ Method 1: Javascript Interaction
     -   returns: `bool` Javascript attempted to trigger test.
 
 -   **get_host**: Simple abstracted layer to retrieve M-Lab site selected for test.
-    -   arguments: `none`
-    -   expects: `string` FQDN of Measurement Lab server
+    -   params: `none`
+    -   returns: `string` FQDN of Measurement Lab server
+
+-   **set_host**: Simple abstracted layer to set the M-Lab site to be used for testing.
+    -   params: `string` FQDN of Measurement Lab server
+    -   returns: `string` FQDN of Measurement Lab server
 
 -   **get_results**: Provides a layer of abstraction between the flash client and JS functionalities. The flash client makes web100 variables available through this method, as well as processed results. We offer both and include shortcuts for core measurements.
-    -   arguments: `string`type of result to retrieve from the NDT client.
-    -   expects: `string` result of the NDT test, otherwise returns false.
+    -   params: `string`type of result to retrieve from the NDT client.
+    -   returns: `string` result of the NDT test, otherwise returns false.
 
 -   **mlab_find_server**: Performs a synchronous AJAX request to M-Lab NS in order to determine the closest Measurement Lab server.
     -   params: `none`
@@ -41,8 +45,8 @@ Method 1: Javascript Interaction
     -   returns: `DOM Object`  Client's DOM object.
 
 -   **check_loaded** *private*: Is the NDT flash client properly loaded? Will fire off a recurrent function to check to the availability of the flash object, then attempts runs a callback function if provided to the NDT object's constructor.
-    -   arguments: `none`
-    -   expects: `none`
+    -   params: `none`
+    -   returns: `none`
 
 Method 2: Flash Interaction 
 ---------------------
