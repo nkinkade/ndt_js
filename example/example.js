@@ -47,7 +47,7 @@ function NDT_on_pageload() {
 }
 function NDT_initialize_application() {
 	if (window.NDT['object'].current_mlab == undefined) {
-		server_name = window.NDT['object'].get_server();
+		server_name = window.NDT['object'].get_host();
 	}
 	
 	NDT_reset_meter();
@@ -78,16 +78,19 @@ function NDT_reset_meter() {
 	d3.select('#progress-meter').classed('progress-complete', false);
 	d3.selectAll("#progress-meter text").classed("ready", true)
 }
-function getNDTServer() {
-	return window.NDT['object'].current_mlab.fqdn;
-}
+
 function NDT_on_change(returned_message) {
 		var ndt_status_labels = {
 									'notStarted': 'Preparing',
-									'done': 'Complete',
-									'runningInboundTest': 'Measuring Download',
-									'runningOutboundTest': 'Measuring Upload',
-									'sendingMetaInformation': 'Sending to M-Lab!'
+									'allTestsCompleted': 'Complete',
+                                    'preparingInboundTest': 'Preparing Download',
+                                    'preparingOutboundTest': 'Preparing Upload',
+                                    'runningInboundTest': 'Measuring Download',
+                                    'runningOutboundTest': 'Measuring Upload',
+									'finishedInboundTest': 'Finished Download',
+									'finishedOutboundTest': 'Finished Upload',
+									'sendingMetaInformation': 'Sending to M-Lab...',
+                                    'submittedMetaInformation': 'Measurement Sent!',
 								}
 		window.NDT['state'] = returned_message;
 		window.NDT['time_switched'] = new Date().getTime();
@@ -96,7 +99,6 @@ function NDT_on_change(returned_message) {
 		d3.timer(NDT_on_progress);		
 }
 function NDT_on_progress() {
-
 	var origin = 0,
 		progress = 0,
 		twoPi = 2 * Math.PI,
@@ -123,7 +125,7 @@ function NDT_on_progress() {
 			start_angle = window.NDT['arc'].startAngle(origin);
 		}
 	} 
-	else if (current_message == "done") {
+	else if (current_message == "allTestsCompleted") {
 			end_angle = window.NDT['arc'].endAngle(twoPi);
 			start_angle = window.NDT['arc'].startAngle(origin);
 	}
@@ -134,7 +136,7 @@ function NDT_on_progress() {
 	d3.select('.foreground').attr("d", end_angle);
 	d3.select('.foreground').attr("d", start_angle);
 	
-	if (current_message == 'done') {
+	if (current_message == 'allTestsCompleted') {
 		return true;
 	}
 	

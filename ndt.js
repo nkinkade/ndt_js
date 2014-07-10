@@ -149,8 +149,9 @@ NDTjs.prototype = {
 		
 		if (this.ready === true && typeof this.client.run_test === 'function' && this.semaphore == false) {
 			this.semaphore = true;
+            this.set_host(this.current_mlab.fqdn);
+            
 			this.client.run_test();
-			
 			this.interval_id = setInterval(
 								(function(self) { 
 									 return function() { 
@@ -163,7 +164,7 @@ NDTjs.prototype = {
 													self.current_state = reported_state;
 												}
 										}
-										if (reported_state == 'done') {			
+										if (reported_state == 'allTestsCompleted') {			
 											self.semaphore = false;
 											clearInterval(self.interval_id);
 																							
@@ -211,16 +212,27 @@ NDTjs.prototype = {
 		 );
 	},
 	/**
-	 * get_server - Simple abstracted layer to retrieve M-Lab site selected for test.
+	 * get_host - Simple abstracted layer to retrieve M-Lab site selected for test.
 	 * 
 	 * @return {string} FQDN of Measurement Lab server 
 	 */
-	get_server: function() {
+	get_host: function() {
 		if (this.ready === true) {
 			return this.client.get_host();
 		}
 		return false;
 	},
+	/**
+	 * set_host - Simple abstracted layer to retrieve M-Lab site selected for test.
+	 *
+	 * @param {string} FQDN of Measurement Lab server
+	 */
+    set_host: function(hostname) {
+        if (this.ready === true) {
+            return this.client.set_host(hostname);
+        }
+        return false;
+    },
 	/**
 	 * get_results
 	 * 

@@ -24,7 +24,7 @@ Method 1: Javascript Interaction
     -   params: `Object` JSON Structure of callbacks; Structure: {'onchange': function, 'oncompletion': function, 'onerror': function}
     -   returns: `bool` Javascript attempted to trigger test.
 
--   **get_server**: Simple abstracted layer to retrieve M-Lab site selected for test.
+-   **get_host**: Simple abstracted layer to retrieve M-Lab site selected for test.
     -   arguments: `none`
     -   expects: `string` FQDN of Measurement Lab server
 
