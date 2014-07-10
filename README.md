@@ -145,7 +145,3 @@ processed results.
     -   params: 
         -   `varName` *required* - NDT variable name (string).
     -   returns: `string`: Test result.
-
-To Do
----------------------
-* ServerToClientThroughput does not send testStarted (Callback startTested -> testStarted)
