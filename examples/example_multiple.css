@@ -1,0 +1,68 @@
+#progress-meter {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 28px;
+	font-weight: bold;
+}
+
+#progress-meter text {
+	fill: #2A333D;
+}
+#progress-meter text.information {
+	font-size: 16px;
+	fill: #6D736A;
+}
+#progress-meter text.status{
+	fill: #3F4D4D;
+}
+#progress-meter .ready {
+	cursor: pointer;	
+}
+#progress-meter .progress {
+	cursor: wait;
+}
+
+#progress-meter .background {
+	fill: #D6D4D0;
+}
+#progress-meter .foreground {
+	fill: #B1C28E;
+}
+#progress-meter .complete {
+	fill: #7F9797;
+}
+
+#progress-meter .result_value, #progress-meter .result_label {
+	font-size: 14px;
+	fill: #707762;
+	text-transform:capitalize;
+}
+#progress-meter .result_label {
+	fill: #2A333D; 	
+}
+
+#progress-meter .progress-error .background {
+	fill: #A77D7D;
+}
+#progress-meter .progress-error text.information {
+	font-size: 8px;
+}
+
+#measurements {
+	position: absolute;
+	left: 500px;
+	top: 80px;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+#measurements th {
+	font-weight: bold;
+	min-width: 50px;
+	font-size: 14px;
+}
+#measurements td {
+	font-size: 12px;
+	color: #6D736A;	
+}
+#measurements td, #measurements th  {
+	text-align: left;
+	padding: 0px 10px 5px 10px;
+}

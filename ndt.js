@@ -147,30 +147,39 @@ NDTjs.prototype = {
 	start_test: function(callbacks) {
 		callbacks = callbacks || {'onchange': undefined, 'oncompletion': undefined, 'onerror': undefined};
 		
-		if (this.ready === true && typeof this.client.run_test === 'function' && this.semaphore == false) {
+		if (this.ready === true && typeof this.client.run_test === 'function' && this.semaphore === false) {
 			this.semaphore = true;
+			this.interval_id = undefined;
+			
             this.set_host(this.current_mlab.fqdn);
-            
 			this.client.run_test();
+			this.test_running = false;
+			
 			this.interval_id = setInterval(
 								(function(self) { 
 									 return function() { 
 									 	var reported_state = self.status(),
 									 		error_message = self.client.get_errmsg();
 									 	
-										if (callbacks['onchange'] !== undefined) {
-												if (self.current_state != reported_state) {
+										if (self.current_state != reported_state) {
+											if (callbacks['onchange'] !== undefined) {
+													console.log(reported_state);
 													callbacks['onchange'](reported_state);
-													self.current_state = reported_state;
-												}
+											}
+											// NDT Can Take A While To Reset
+											if (reported_state != 'allTestsCompleted') {
+												self.test_running = true;
+											}
+											self.current_state = reported_state;
 										}
-										if (reported_state == 'allTestsCompleted') {			
+										if (reported_state == 'allTestsCompleted' && self.semaphore == true && self.test_running == true) {			
 											self.semaphore = false;
-											clearInterval(self.interval_id);
-																							
+											self.interval_id = clearInterval(self.interval_id);
+											
 											if (callbacks['oncompletion'] !== undefined) {
 												callbacks['oncompletion']();
-											}											
+											}
+											return true;
 										}
 
 										if ( !(error_message == 'Test in progress.' || error_message == 'All tests completed OK.' || error_message == 'Test not run.') ) {
